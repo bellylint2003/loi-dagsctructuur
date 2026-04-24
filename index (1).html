@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOI Dagstructuur</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --card: #1a1a1a;
+    --border: #2a2a2a;
+    --green: #00ff88;
+    --yellow: #ffd700;
+    --blue: #4da6ff;
+    --red: #ff4d4d;
+    --text: #e8e8e8;
+    --muted: #666;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    margin-bottom: 64px;
+    border-left: 3px solid var(--green);
+    padding-left: 20px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  header .label {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+
+  header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #fff;
+  }
+
+  header p {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+    max-width: 480px;
+  }
+
+  /* SECTIONS */
+  section {
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  section:nth-child(2) { animation-delay: 0.1s; }
+  section:nth-child(3) { animation-delay: 0.15s; }
+  section:nth-child(4) { animation-delay: 0.2s; }
+  section:nth-child(5) { animation-delay: 0.25s; }
+  section:nth-child(6) { animation-delay: 0.3s; }
+  section:nth-child(7) { animation-delay: 0.35s; }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* BLOK CARDS */
+  .blok-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .blok-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .blok-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .blok-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .blok-card.green { border-color: rgba(0,255,136,0.2); }
+  .blok-card.green::before { background: var(--green); }
+  .blok-card.green:hover { border-color: rgba(0,255,136,0.5); }
+
+  .blok-card.yellow { border-color: rgba(255,215,0,0.2); }
+  .blok-card.yellow::before { background: var(--yellow); }
+  .blok-card.yellow:hover { border-color: rgba(255,215,0,0.5); }
+
+  .blok-card.blue { border-color: rgba(77,166,255,0.2); }
+  .blok-card.blue::before { background: var(--blue); }
+  .blok-card.blue:hover { border-color: rgba(77,166,255,0.5); }
+
+  .blok-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .blok-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .green .blok-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .yellow .blok-dot { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+  .blue .blok-dot { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+  .blok-meta h3 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .blok-meta .duration {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .blok-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .blok-items li {
+    font-size: 13px;
+    color: #aaa;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .blok-items li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  .blok-warning {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: rgba(255,77,77,0.07);
+    border: 1px solid rgba(255,77,77,0.2);
+    border-radius: 3px;
+    font-size: 12px;
+    color: #ff8080;
+  }
+
+  .blok-tip {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  .green .blok-tip { background: rgba(0,255,136,0.05); border: 1px solid rgba(0,255,136,0.15); color: #6effc4; }
+  .blue .blok-tip { background: rgba(77,166,255,0.05); border: 1px solid rgba(77,166,255,0.15); color: #80bfff; }
+
+  /* SYSTEEM CARDS */
+  .systeem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .systeem-grid { grid-template-columns: 1fr; }
+  }
+
+  .systeem-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px;
+  }
+
+  .systeem-card h4 {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+
+  .systeem-card.do { border-color: rgba(0,255,136,0.15); }
+  .systeem-card.dont { border-color: rgba(255,77,77,0.15); }
+
+  .tag-do { color: var(--green); font-size: 11px; letter-spacing: 0.1em; }
+  .tag-dont { color: var(--red); font-size: 11px; letter-spacing: 0.1em; }
+
+  .systeem-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .systeem-card ul li {
+    font-size: 12px;
+    color: #999;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .do ul li::before { content: '✓'; position: absolute; left: 0; color: var(--green); }
+  .dont ul li::before { content: '✗'; position: absolute; left: 0; color: var(--red); }
+
+  /* WEEK TABEL */
+  .week-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .week-table th {
+    font-family: var(--font-display);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .week-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(42,42,42,0.6);
+    color: #aaa;
+    vertical-align: top;
+    line-height: 1.6;
+  }
+
+  .week-table tr:hover td {
+    background: rgba(255,255,255,0.02);
+  }
+
+  .week-table td:first-child {
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: 14px;
+  }
+
+  .day-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .badge-work { background: rgba(0,255,136,0.1); color: var(--green); }
+  .badge-light { background: rgba(255,215,0,0.1); color: var(--yellow); }
+  .badge-rest { background: rgba(77,166,255,0.1); color: var(--blue); }
+
+  /* VALKUILEN */
+  .valkuil-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .valkuil-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .valkuil-num {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: rgba(255,77,77,0.3);
+    line-height: 1;
+  }
+
+  .valkuil-content h4 {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .valkuil-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 12px;
+    margin-bottom: 5px;
+    line-height: 1.5;
+  }
+
+  .valkuil-row.bad { color: #ff8080; }
+  .valkuil-row.good { color: #6effc4; }
+  .valkuil-row .icon { flex-shrink: 0; margin-top: 1px; }
+
+  /* QUOTE */
+  .final-quote {
+    margin-top: 56px;
+    padding: 32px 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .final-quote::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--green), var(--blue), var(--yellow));
+  }
+
+  .final-quote .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .final-quote blockquote {
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.5;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .final-quote blockquote em {
+    font-style: normal;
+    color: var(--green);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="label">📅 Studieplan</div>
+    <h1>Realistische LOI<br>Dagstructuur</h1>
+    <p>Geen motivatie nodig. Alleen een systeem. Dit is dat systeem.</p>
+  </header>
+
+  <!-- BLOKKEN -->
+  <section>
+    <div class="section-title">Dagblokken</div>
+    <div class="blok-grid">
+
+      <div class="blok-card green">
+        <div class="blok-header">
+          <div class="blok-dot"></div>
+          <div class="blok-meta">
+            <h3>Blok 1 – Hoofdstudie</h3>
+            <span class="duration">max 1,5 uur</span>
+          </div>
+        </div>
+        <ul class="blok-items">
+          <li>LOI lesmateriaal volgen</li>
+          <li>Aantekeningen maken</li>
+          <li>Kleine opdrachten</li>
+        </ul>
+        <div class="blok-warning">⚠ Stop hier op tijd — anders brand je op</div>
+      </div>
+
+      <div class="blok-card yellow">
+        <div class="blok-header">
+          <div class="blok-dot"></div>
+          <div class="blok-meta">
+            <h3>Blok 2 – Toepassen</h3>
+            <span class="duration">45–60 min</span>
+          </div>
+        </div>
+        <ul class="blok-items">
+          <li>Kleine code schrijven op basis van wat je leerde</li>
+          <li>Oefening opnieuw maken zonder hulp</li>
+          <li>Eigen variatie proberen</li>
+        </ul>
+      </div>
+
+      <div class="blok-card blue">
+        <div class="blok-header">
+          <div class="blok-dot"></div>
+          <div class="blok-meta">
+            <h3>Blok 3 – Minimum Mode</h3>
+            <span class="duration">20 min</span>
+          </div>
+        </div>
+        <ul class="blok-items">
+          <li>1 functie schrijven</li>
+          <li>1 stukje theorie lezen</li>
+          <li>1 oefening afronden</li>
+        </ul>
+        <div class="blok-tip">👉 Dit is wat voorkomt dat je stopt. Geen zin? Dit blok is genoeg.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ANTI-VERVELING -->
+  <section>
+    <div class="section-title">🔁 Anti-verveling systeem</div>
+    <div class="systeem-grid">
+      <div class="systeem-card dont">
+        <div class="tag-dont">✗ Niet doen</div>
+        <ul>
+          <li>Stoppen met studie bij verveling</li>
+          <li>6 uur per dag starten en daarna crashen</li>
+          <li>Wachten op motivatie</li>
+        </ul>
+      </div>
+      <div class="systeem-card do">
+        <div class="tag-do">✓ Wel doen</div>
+        <ul>
+          <li>LOI theorie → eigen project wisselen</li>
+          <li>Project → bug fix → tutorial</li>
+          <li>Elke dag 30–60 min eigen project</li>
+          <li>Switch taak, niet stoppen</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- WEEKPLANNING -->
+  <section>
+    <div class="section-title">📆 Weekplanning</div>
+    <table class="week-table">
+      <thead>
+        <tr>
+          <th>Dag</th>
+          <th>Activiteiten</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ma – Vr <span class="day-badge badge-work">actief</span></td>
+          <td>1,5 uur LOI &nbsp;·&nbsp; 45 min oefenen &nbsp;·&nbsp; 30 min eigen project</td>
+        </tr>
+        <tr>
+          <td>Zaterdag <span class="day-badge badge-light">licht</span></td>
+          <td>Alleen project of bug fixing — niets verplicht</td>
+        </tr>
+        <tr>
+          <td>Zondag <span class="day-badge badge-rest">rust</span></td>
+          <td>Niks verplicht. Rust is onderdeel van het systeem.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- VALKUILEN -->
+  <section>
+    <div class="section-title">⚠ Grootste valkuilen</div>
+    <div class="valkuil-list">
+
+      <div class="valkuil-item">
+        <div class="valkuil-num">1</div>
+        <div class="valkuil-content">
+          <h4>Te hard gaan in het begin</h4>
+          <div class="valkuil-row bad"><span class="icon">✗</span> 6 uur per dag → crash</div>
+          <div class="valkuil-row good"><span class="icon">✓</span> Hou het kort, bouw langzaam op</div>
+        </div>
+      </div>
+
+      <div class="valkuil-item">
+        <div class="valkuil-num">2</div>
+        <div class="valkuil-content">
+          <h4>Stoppen bij verveling</h4>
+          <div class="valkuil-row bad"><span class="icon">✗</span> "Dit is niks voor mij" → stoppen</div>
+          <div class="valkuil-row good"><span class="icon">✓</span> Switch taak, niet stoppen</div>
+        </div>
+      </div>
+
+      <div class="valkuil-item">
+        <div class="valkuil-num">3</div>
+        <div class="valkuil-content">
+          <h4>Alleen werken op motivatie</h4>
+          <div class="valkuil-row bad"><span class="icon">✗</span> Inconsistent, uitvallen</div>
+          <div class="valkuil-row good"><span class="icon">✓</span> Minimum rule — 20 minuten is altijd genoeg</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FINAL QUOTE -->
+  <div class="final-quote">
+    <div class="eyebrow">🧠 Onthoud dit</div>
+    <blockquote>
+      Als je elke dag zelfs maar <em>20–90 minuten</em> blijft doen,<br>
+      ga je deze studie afmaken — ook als je motivatie 0 is.
+    </blockquote>
+  </div>
+
+</div>
+</body>
+</html>
